@@ -473,14 +473,19 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
 			<< "### Beam Trigger: " << _triggers.beam << endl
 			<< "### In Spill Trigger: " << _triggers.inSpillTrg << endl;
 
-/*		cout << "### Wire Chamber A: NHits=" << _vWCData[0].x.size() << endl
-			<< "### Wire Chamber B: NHits=" << _vWCData[1].x.size() << endl
-			<< "### Wire Chamber C: NHits=" << _vWCData[2].x.size() << endl
-			<< "### Wire Chamber D: NHits=" << _vWCData[3].x.size() << endl
-			<< "### Wire Chamber E: NHits=" << _vWCData[4].x.size() << endl;
-		cout << "HF Table Pos(X, Y, V) = " << tableX << "  " << tableY << "  " <<
-			tableV << endl;
-			*/
+		cout << "### Wire Chamber A: NHits: " << wcX[0].size() 
+			<< "  " << wcY[0].size() << endl
+			<< "### Wire Chamber B: NHits=" << wcX[1].size() 
+			<< "  " << wcY[1].size() << endl
+			<< "### Wire Chamber C: NHits=" << wcX[2].size() 
+			<< "  " << wcY[2].size() << endl
+			<< "### Wire Chamber D: NHits=" << wcX[3].size() 
+			<< "  " << wcY[3].size() << endl
+			<< "### Wire Chamber E: NHits=" << wcX[4].size() 
+			<< "  " << wcY[4].size() << endl;
+//		cout << "HF Table Pos(X, Y, V) = " << tableX << "  " << tableY << "  " <<
+//			tableV << endl;
+			
 
 		cout << "### Beam Counters:" << endl
 			<< "### Cerenkov1: " << _BCData.cer1adc << endl

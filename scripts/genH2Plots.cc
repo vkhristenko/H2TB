@@ -1,7 +1,22 @@
 
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
 
+#include "TFile.h"
+#include "TROOT.h"
+#include "TApplication.h"
+#include "TSystem.h"
+#include "TTree.h"
+#include "TH1D.h"
+#include "TH2D.h"
+#include "TProfile.h"
+#include "TGraph.h"
 
-
+using namespace std;
 
 #define NUMPHIS 3
 #define NUMETAS 13
@@ -68,30 +83,34 @@ struct H2MapChannel
 //	Was lazy, init map HF(iphi, ieta, depth) -> channelId
 //
 int HF2ChId[NUMPHIS][NUMETAS][NUMDEPTHS];
-HF2ChId[1][0][0] = 1;
-HF2ChId[1][1][0] = 2;
-HF2ChId[1][2][0] = 3;
-HF2ChId[1][3][0] = 4;
-HF2ChId[1][4][0] = 5;
-HF2ChId[1][5][0] = 6;
-HF2ChId[1][6][0] = 7;
-HF2ChId[1][7][0] = 8;
-HF2ChId[1][8][0] = 9;
-HF2ChId[1][9][0] = 10;
-HF2ChId[1][10][0] = 11;
-HF2ChId[1][0][1] = 12;
-HF2ChId[1][1][1] = 13;
-HF2ChId[1][2][1] = 14;
-HF2ChId[1][3][1] = 15;
-HF2ChId[1][4][1] = 16;
-HF2ChId[1][5][1] = 17;
-HF2ChId[1][6][1] = 18;
-HF2ChId[1][7][1] = 19;
-HF2ChId[1][8][1] = 20;
-HF2ChId[1][9][1] = 21;
-HF2ChId[1][10][1] = 22;
-HF2ChId[2][0][0] = 23;
-HF2ChId[2][1][0] = 24;
+
+void initMap()
+{
+	HF2ChId[1][0][0] = 1;
+	HF2ChId[1][1][0] = 2;
+	HF2ChId[1][2][0] = 3;
+	HF2ChId[1][3][0] = 4;
+	HF2ChId[1][4][0] = 5;
+	HF2ChId[1][5][0] = 6;
+	HF2ChId[1][6][0] = 7;
+	HF2ChId[1][7][0] = 8;
+	HF2ChId[1][8][0] = 9;
+	HF2ChId[1][9][0] = 10;
+	HF2ChId[1][10][0] = 11;
+	HF2ChId[1][0][1] = 12;
+	HF2ChId[1][1][1] = 13;
+	HF2ChId[1][2][1] = 14;
+	HF2ChId[1][3][1] = 15;
+	HF2ChId[1][4][1] = 16;
+	HF2ChId[1][5][1] = 17;
+	HF2ChId[1][6][1] = 18;
+	HF2ChId[1][7][1] = 19;
+	HF2ChId[1][8][1] = 20;
+	HF2ChId[1][9][1] = 21;
+	HF2ChId[1][10][1] = 22;
+	HF2ChId[2][0][0] = 23;
+	HF2ChId[2][1][0] = 24;
+}
 
 
 
@@ -104,6 +123,13 @@ void genH2Plots(int verb, string inFileName, string outFileName)
 	THFInfo hfInfo;
 	H2Triggers triggers;
 	BCData bc;
+
+	initMap();
+	for (int i=0; i<5; i++)
+	{
+		wcX[i] = NULL;
+		wcY[i] = NULL;
+	}
 
 	ofstream log_beam("log.beam");
 	ofstream log_ped("log.ped");
@@ -155,16 +181,41 @@ void genH2Plots(int verb, string inFileName, string outFileName)
 	out->cd("PedEvents");
 	gDirectory->mkdir("Histos");
 	gDirectory->mkdir("AvgPulses");
+	gDirectory->mkdir("Noise");
 
 	out->cd("DataEvents");
 	gDirectory->mkdir("Histos");
 	gDirectory->mkdir("AvgPulses");
 	gDirectory->mkdir("XY");
+	gDirectory->mkdir("Correlation");
+	gDirectory->mkdir("Noise");
 
 	TH1D *hSignal[2][NUMPHIS][NUMETAS][NUMDEPTHS];
 	TProfile *pSignalPulses[2][NUMPHIS][NUMETAS][NUMDEPTHS];
 	TH2D *hXY[5];
-	TH2D *hXY_wCut[5];
+//	TH2D *hQievsTS[2][NUMPHIS][NUMETAS][NUMDEPTHS];
+//	TH2D *hXY_wCut[5];
+	
+	TGraph *gAxBx, *gAyBy, *gCxDx, *gCyDy, *gBxCx, *gByCy;
+	gAxBx = new TGraph();
+	gAxBx->SetName("AxBx");
+	gAxBx->SetTitle("AxBx");
+	gAyBy = new TGraph();
+	gAyBy->SetName("AyBy");
+	gAyBy->SetTitle("AyBy");
+	gCxDx = new TGraph();
+	gCxDx->SetName("CxDx");
+	gCxDx->SetTitle("CxDx");
+	gCyDy = new TGraph();
+	gCyDy->SetName("CyDy");
+	gCyDy->SetTitle("CyDy");
+	gBxCx = new TGraph();
+	gBxCx->SetName("BxCx");
+	gBxCx->SetTitle("BxCx");
+	gByCy = new TGraph();
+	gByCy->SetName("ByCy");
+	gByCy->SetTitle("ByCy");
+
 	char wcNames[5] = {'A', 'B', 'C', 'D', 'E'};
 	char nameXY[200];
 
@@ -173,8 +224,8 @@ void genH2Plots(int verb, string inFileName, string outFileName)
 	{
 		sprintf(nameXY, "XY%c", wcNames[i]);
 		hXY[i] = new TH2D(nameXY, nameXY, 200, -100, 100, 200, -100, 100);
-		sprintf(nameXY, "XY%c_wCut", wcNames[i]);
-		hXY_wCut[i] = new TH2D(nameXY, nameXY, 200, -100, 100, 200, -100, 100);
+//		sprintf(nameXY, "XY%c_wCut", wcNames[i]);
+//		hXY_wCut[i] = new TH2D(nameXY, nameXY, 200, -100, 100, 200, -100, 100);
 	}
 
 	char histName[200];
@@ -209,7 +260,6 @@ void genH2Plots(int verb, string inFileName, string outFileName)
 						continue;
 					}
 
-
 					gDirectory->cd("Histos");
 					sprintf(histName, "Signal_Ch%d",
 							HF2ChId[iiphi][iieta][idepth]);
@@ -228,9 +278,12 @@ void genH2Plots(int verb, string inFileName, string outFileName)
 		}
 	}
 
-	cout << "### Starting the Analysis..." << endl;
+
+
+	cout << "### Starting the Analysis for " << outFileName << endl;
 	int numEvents = treeHF->GetEntries();
 	cout << "### Total Number of Events=" << numEvents << endl;
+	int nABX, nABY, nCDX, nCDY, nBCX, nBCY;
 	for (int iEvent=0; iEvent<numEvents; iEvent++)
 	{
 		treeHF->GetEntry(iEvent);
@@ -263,9 +316,9 @@ void genH2Plots(int verb, string inFileName, string outFileName)
 			//
 			for (int iCh=0; iCh<hfInfo.numChs; iCh++)
 			{
-				int iphi = hfInfo.iphi[iCh]; int iiphi=(iphi-1)/2;
-				int ieta = hfInfo.ieta[iCh]; int iieta=ieta-29;
-				int depth = hfInfo.depth[iCh]; int idepth = depth-1;
+				int iphi = hfInfo.iphi[iCh];
+				int ieta = hfInfo.ieta[iCh];
+				int depth = hfInfo.depth[iCh];
 				int iiphi = (iphi-1)/2;
 				int iieta = ieta-29;
 				int idepth = depth-1;
@@ -291,7 +344,6 @@ void genH2Plots(int verb, string inFileName, string outFileName)
 			continue;
 		}
 
-
 		//
 		//	For Beam or LED Events
 		//	itype=1 for that
@@ -305,19 +357,75 @@ void genH2Plots(int verb, string inFileName, string outFileName)
 
 			hXY[i]->Fill(xx, yy);
 
-			if (bc.s2adc>60)
-				hXY_wCut[i]->Fill(xx, yy);
+//			if (bc.s2adc>60)
+//				hXY_wCut[i]->Fill(xx, yy);
 		}
 
+		//
+		//	Get AxBx and AyBy correlation
+		//
+		double xA, yA, xB, yB;
+		double xC, yC, xD, yD;
+		/*
+		if (wcX[0]->size()!=0 && wcX[1]->size()!=0)
+		{
+			xA = wcX[0]->at(0);
+			xB = wcX[1]->at(0);
+			gAxBx->SetPoint(nABX, xA, xB);
+			nABX++;
+		}
+		if (wcY[0]->size()!=0 && wcY[1]->size()!=0)
+		{
+			yA = wcY[0]->at(0);
+			yB = wcY[1]->at(0);
+			gAyBy->SetPoint(nABY, yA, yB);
+			nABY++;
+		}
+		if (wcX[2]->size()!=0 && wcX[3]->size()!=0)
+		{
+			xC = wcX[2]->at(0);
+			xD = wcX[3]->at(0);
+			gCxDx->SetPoint(nCDX, xC, xD);
+			nCDX++;
+		}
+		if (wcY[2]->size()!=0 && wcY[3]->size()!=0)
+		{
+			yC = wcY[2]->at(0);
+			yD = wcY[3]->at(0);
+			gCyDy->SetPoint(nCDY, yC, yD);
+			nCDY++;
+		}
+		if (wcX[1]->size()!=0 && wcX[2]->size()!=0)
+		{
+			xB = wcX[1]->at(0);
+			xC = wcX[2]->at(0);
+			gBxCx->SetPoint(nBCX, xB, xC);
+			nBCX++;
+		}
+		if (wcY[1]->size()!=0 && wcY[2]->size()!=0)
+		{
+			yB = wcY[1]->at(0);
+			yC = wcY[2]->at(0);
+			gByCy->SetPoint(nBCY, yB, yC);
+			nBCY++;
+		}
+*/
 		for (int iCh=0; iCh<hfInfo.numChs; iCh++)
 		{
-			int iphi = hfInfo.iphi[iCh]; int iiphi = (iphi-1)/2;
-			int ieta = hfInfo.ieta[iCh]; int iieta = ieta-29;
-			int depth = hfInfo.depth[iCh]; int idepth = depth-1;
+			int iphi = hfInfo.iphi[iCh];
+			int ieta = hfInfo.ieta[iCh];
+			int depth = hfInfo.depth[iCh];
 			int iiphi = (iphi-1)/2;
 			int iieta = ieta-29;
 			int idepth = depth-1;
 
+/*			if (HF2ChId[iiphi][iieta][idepth]>0)
+			{
+				for (int i=0; i<10; i++)
+					hQievsTS[1][iiphi][iieta][idepth]->Fill(hfInfo.pulse[iCh][i],
+							i+0.5);
+			}
+*/
 			if (isGarbage(hfInfo.pulse[iCh]))
 			{
 				log_beam_excl << HF2ChId[iiphi][iieta][idepth] << endl;
@@ -354,6 +462,14 @@ void genH2Plots(int verb, string inFileName, string outFileName)
 		}
 	}
 
+	out->cd("DataEvents/Correlation");
+	gAxBx->Write();
+	gAyBy->Write();
+	gCxDx->Write();
+	gCyDy->Write();
+	gBxCx->Write();
+	gByCy->Write();
+
 	out->Write();
 	out->Close();
 
@@ -376,7 +492,16 @@ bool isGarbage(double pulse[50])
 }
 
 
+int main(int argc, char **argv)
+{
+	int verbosity = atoi(argv[1]);
+	string inFileName = string(argv[2]);
+	string outFileName = string(argv[3]);
 
+	genH2Plots(verbosity, inFileName, outFileName);
+
+	return 0;
+}
 
 
 
