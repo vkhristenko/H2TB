@@ -351,14 +351,14 @@ void H2TestBeamAnalyzer::getData(const edm::Event &iEvent,
 	edm::Handle<HcalTBParticleId> pId;
 	edm::Handle<HcalTBTiming> timing;
 
-	iEvent.getByType(hfDigiCollection);	
-	iEvent.getByType(hbheDigiCollection);
-	iEvent.getByType(hoDigiCollection);
-	iEvent.getByType(trigData);
+	iEvent.getByLabel(hfDigiCollection);	
+	iEvent.getByLabel(hbheDigiCollection);
+	iEvent.getByLabel(hoDigiCollection);
+	iEvent.getByLabel(trigData);
 	iEvent.getByLabel("tbunpack", eventPos);
-	iEvent.getByType(beamCounters);
-	iEvent.getByType(pId);
-	iEvent.getByType(timing);
+	iEvent.getByLabel(beamCounters);
+	iEvent.getByLabel(pId);
+	iEvent.getByLabel(timing);
 
 	//
 	//	Extract Trigger Info
