@@ -26,8 +26,8 @@ process.source = cms.Source("HcalTBSource",
     fileNames = cms.untracked.vstring(
 #		'root://eoscms//eos/cms/store/group/comm_hcal/LS1/USC_226003.root'
 #		'root://eoscms//eos/cms/store/group/comm_hcal/LS1/USC_227057.root'
-#		'file:/afs/cern.ch/work/v/vkhriste/CMSSW/CMSSW_6_0_1/src/UserCode/H2TestBeamAnalyzer/data_H2_TB/HTB_007385.root' 
-		'file:/afs/cern.ch/work/v/vkhriste/CMSSW/CMSSW_5_3_21/src/UserCode/H2TestBeamAnalyzer/data_H2_TB/HTB_' + runNumber + '.root'
+		'file:/afs/cern.ch/work/v/vkhriste/CMSSW/CMSSW_6_0_1/src/UserCode/H2TestBeamAnalyzer/data_H2_TB/HTB_007385.root' 
+#		'file:/afs/cern.ch/work/v/vkhriste/CMSSW/CMSSW_5_3_21/src/UserCode/H2TestBeamAnalyzer/data_H2_TB/HTB_' + runNumber + '.root'
 	)
 )
 
@@ -42,11 +42,12 @@ process.tbunpack = cms.EDProducer("HcalTBObjectUnpacker",
 		HcalSlowDataFED = cms.untracked.int32(3),
 		HcalTriggerFED = cms.untracked.int32(1),
 		HcalTDCFED = cms.untracked.int32(8),
-		HcalQADCFED = cms.untracked.int32(8)
+		HcalQADCFED = cms.untracked.int32(8),
+		fedRawDataCollectionTag = cms.InputTag("source")
 		)
 
 process.hcalDigis = cms.EDProducer("HcalRawToDigi",
-		UnpackHF = cms.untracked.bool(True),
+#		UnpackHF = cms.untracked.bool(True),
 		### Falg to enable unpacking of TTP channels(default = false)
 		### UnpackTTP = cms.untracked.bool(True),
 		FilterDataQuality = cms.bool(False),
@@ -88,7 +89,7 @@ process.es_ascii = cms.ESSource('HcalTextCalibrations',
 				object = cms.string('ElectronicsMap'),
 #				file = cms.FileInPath('UserCode/H2TestBeamAnalyzer/emap_H2_validatedSIC_jul2013.txt')
 				file = cms.FileInPath(
-					'UserCode/H2TestBeamAnalyzer/EMAP_H2_ByVik.txt'
+					'EMAP_H2_ByVik.txt'
 				)
 			)
 		)
